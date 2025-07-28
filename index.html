@@ -17,25 +17,25 @@
     }
     #game-container {
       position: relative;
-      width: 800px;
-      height: 180px;
+      width: 1200px;
+      height: 270px;
       background: #fff;
-      border: 5px solid #000;
+      border: 7px solid #000;
       overflow: hidden;
     }
     #dino {
       position: absolute;
-      left: 50px;
-      width: 44px;
-      height: 47px;
+      left: 75px;
+      width: 66px;
+      height: 70px;
       image-rendering: pixelated;
       transition: width 0.1s, height 0.1s, bottom 0.1s;
       z-index: 10;
     }
     .cactus {
       position: absolute;
-      width: 25px;
-      height: 50px;
+      width: 37px;
+      height: 75px;
       image-rendering: pixelated;
       z-index: 5;
       transition: bottom 0.1s;
@@ -44,26 +44,26 @@
       position: absolute;
       left: 0;
       width: 100%;
-      height: 5px;
+      height: 7px;
       background: #000;
     }
     #score {
       position: fixed;
-      top: calc(50vh - 130px);
-      right: calc(50vw - 400px);
-      font-size: 20px;
+      top: calc(50vh - 195px);
+      right: calc(50vw - 600px);
+      font-size: 30px;
       color: #000;
       font-family: monospace;
       z-index: 1000;
     }
     #game-over {
       display: none;
-      position: absolute;
-      top: 50%;
+      position: fixed;
+      top: calc(50vh - 220px);
       left: 50%;
-      transform: translate(-50%, -50%);
+      transform: translateX(-50%);
       z-index: 30;
-      width: 500px;
+      width: 750px;
       max-width: 90%;
       pointer-events: none;
       background: none;
@@ -75,8 +75,8 @@
 <body>
   <div id="game-container">
     <img id="dino" src="images/trex.png" alt="Dino">
-    <div class="lane-divider" style="bottom: 60px;"></div>
-    <div class="lane-divider" style="bottom: 120px;"></div>
+    <div class="lane-divider" style="bottom: 90px;"></div>
+    <div class="lane-divider" style="bottom: 180px;"></div>
     <img id="game-over" src="images/game over screen.png" alt="Game Over">
   </div>
   <div id="score">0</div>
@@ -92,9 +92,13 @@
     ];
     const dinoGameOverImg = 'images/trex game over.png';
     const cactusImg = 'images/cactus.png';
+    const pterodactylImgs = [
+      'images/pterodactyl 1.png',
+      'images/pterodactyl 2.png'
+    ];
 
     const laneCount = 3;
-    const laneBottoms = [5, 65, 125];
+    const laneBottoms = [-3, 95, 185]; // Bottom lane now at -10 to go below the black border
     let dinoLane = 0;
 
     const dino = document.getElementById('dino');
@@ -108,7 +112,7 @@
     let gravity = -0.7;
     let jumpPower = 12;
     let groundY = 0;
-    let cactusSpeed = 7;
+    let cactusSpeed = 10;
     let cactusInterval = 1200;
     let score = 0;
     let running = false;
@@ -120,8 +124,8 @@
 
     function showIdle() {
       dino.src = dinoIdleImg;
-      dino.style.height = '47px';
-      dino.style.width = '44px';
+      dino.style.height = '70px';
+      dino.style.width = '66px';
       dinoLane = 1;
       dino.style.bottom = laneBottoms[dinoLane] + 'px';
       scoreElem.textContent = '0';
@@ -142,34 +146,46 @@
 
       if (e.code === 'KeyA') {
         if (dinoLane < laneCount - 1) {
+          const wasElevatedCrouch = isCrouching && dino.style.bottom !== (laneBottoms[dinoLane] + 'px');
           dinoLane++;
-          dino.style.bottom = laneBottoms[dinoLane] + 'px';
+          if (wasElevatedCrouch) {
+            // Maintain elevated crouch position in new lane
+            dino.style.bottom = (laneBottoms[dinoLane] + 37) + 'px';
+          } else {
+            dino.style.bottom = laneBottoms[dinoLane] + 'px';
+          }
         }
       }
       if (e.code === 'KeyD') {
         if (dinoLane > 0) {
+          const wasElevatedCrouch = isCrouching && dino.style.bottom !== (laneBottoms[dinoLane] + 'px');
           dinoLane--;
-          dino.style.bottom = laneBottoms[dinoLane] + 'px';
+          if (wasElevatedCrouch) {
+            // Maintain elevated crouch position in new lane
+            dino.style.bottom = (laneBottoms[dinoLane] + 37) + 'px';
+          } else {
+            dino.style.bottom = laneBottoms[dinoLane] + 'px';
+          }
         }
       }
       if (e.code === 'KeyS' && !isCrouching) {
         isCrouching = true;
-        dino.style.height = '30px';
-        dino.style.width = '59px';
+        dino.style.height = '45px';
+        dino.style.width = '88px';
       }
       if (e.code === 'KeyW' && !isCrouching) {
         isCrouching = true;
-        dino.style.height = '30px';
-        dino.style.width = '59px';
-        dino.style.bottom = (laneBottoms[dinoLane] + 25) + 'px';
+        dino.style.height = '45px';
+        dino.style.width = '88px';
+        dino.style.bottom = (laneBottoms[dinoLane] + 37) + 'px';
       }
     });
 
     document.addEventListener('keyup', (e) => {
       if ((e.code === 'KeyS' || e.code === 'KeyW') && isCrouching) {
         isCrouching = false;
-        dino.style.height = '47px';
-        dino.style.width = '44px';
+        dino.style.height = '70px';
+        dino.style.width = '66px';
         dino.style.bottom = laneBottoms[dinoLane] + 'px';
       }
     });
@@ -179,28 +195,78 @@
       const cactusGroup = [];
       let groupOffset = gameContainer.offsetWidth;
       
-      for (let i = 0; i < groupSize; i++) {
-        const cactus = document.createElement('img');
-        cactus.src = cactusImg;
-        cactus.className = 'cactus';
-        cactus.style.left = (groupOffset + i * 28) + 'px';
-        cactus.style.width = '25px';
-        cactus.style.height = '50px';
-        cactus.style.bottom = laneBottoms[lane] + 'px';
-        cactus.dataset.lane = lane;
-        gameContainer.appendChild(cactus);
-        cactusGroup.push(cactus);
-        cacti.push(cactus);
+      const randomValue = Math.random();
+      const spawnPterodactyl = randomValue < 0.3;
+      const spawnRock = randomValue >= 0.3 && randomValue < 0.6;
+      
+      if (spawnPterodactyl) {
+        const pterodactyl = document.createElement('img');
+        pterodactyl.src = pterodactylImgs[0];
+        pterodactyl.className = 'pterodactyl';
+        pterodactyl.style.position = 'absolute';
+        pterodactyl.style.left = groupOffset + 'px';
+        pterodactyl.style.width = '60px';
+        pterodactyl.style.height = '40px';
+        pterodactyl.style.bottom = (laneBottoms[lane] + 44) + 'px';
+        pterodactyl.style.imageRendering = 'pixelated';
+        pterodactyl.style.zIndex = '5';
+        pterodactyl.dataset.lane = lane;
+        pterodactyl.dataset.type = 'pterodactyl';
+        pterodactyl.dataset.frame = '0';
+        gameContainer.appendChild(pterodactyl);
+        cacti.push(pterodactyl);
+      } else if (spawnRock) {
+        const rock = document.createElement('img');
+        rock.src = 'images/rock.png';
+        rock.className = 'rock';
+        rock.style.position = 'absolute';
+        rock.style.left = groupOffset + 'px';
+        rock.style.width = '50px';
+        rock.style.height = '35px';
+        rock.style.bottom = (laneBottoms[lane]) + 'px';
+        rock.style.imageRendering = 'pixelated';
+        rock.style.zIndex = '5';
+        rock.dataset.lane = lane;
+        rock.dataset.type = 'rock';
+        gameContainer.appendChild(rock);
+        cacti.push(rock);
+      } else {
+        for (let i = 0; i < groupSize; i++) {
+          const cactus = document.createElement('img');
+          cactus.src = cactusImg;
+          cactus.className = 'cactus';
+          cactus.style.left = (groupOffset + i * 42) + 'px';
+          cactus.style.width = '37px';
+          cactus.style.height = '75px';
+          cactus.style.bottom = laneBottoms[lane] + 'px';
+          cactus.dataset.lane = lane;
+          cactus.dataset.type = 'cactus';
+          gameContainer.appendChild(cactus);
+          cactusGroup.push(cactus);
+          cacti.push(cactus);
+        }
       }
     }
 
     function updateCacti() {
       for (let i = cacti.length - 1; i >= 0; i--) {
-        let cactus = cacti[i];
-        let left = parseInt(cactus.style.left);
-        cactus.style.left = (left - cactusSpeed) + 'px';
-        if (left < -30) {
-          cactus.remove();
+        let obstacle = cacti[i];
+        let left = parseInt(obstacle.style.left);
+        obstacle.style.left = (left - cactusSpeed) + 'px';
+        
+        // Animate pterodactyl flapping
+        if (obstacle.dataset.type === 'pterodactyl') {
+          let frame = parseInt(obstacle.dataset.frame);
+          // Change frame every 8 game loops for flapping effect
+          if (dinoAnimTimer % 8 === 0) {
+            frame = (frame + 1) % 2;
+            obstacle.src = pterodactylImgs[frame];
+            obstacle.dataset.frame = frame;
+          }
+        }
+        
+        if (left < -45) {
+          obstacle.remove();
           cacti.splice(i, 1);
         }
       }
@@ -208,16 +274,38 @@
 
     function checkCollision() {
       const dinoRect = dino.getBoundingClientRect();
-      for (let cactus of cacti) {
-        const cactusRect = cactus.getBoundingClientRect();
-        if (parseInt(cactus.dataset.lane) === dinoLane) {
-          if (
-            dinoRect.right - 10 > cactusRect.left &&
-            dinoRect.left + 10 < cactusRect.right &&
-            dinoRect.bottom - 5 > cactusRect.top &&
-            dinoRect.top + 5 < cactusRect.bottom
-          ) {
-            return true;
+      for (let obstacle of cacti) {
+        const obstacleRect = obstacle.getBoundingClientRect();
+        if (parseInt(obstacle.dataset.lane) === dinoLane) {
+          if (obstacle.dataset.type === 'pterodactyl') {
+            const isCrouchingWithS = isCrouching && dino.style.bottom === (laneBottoms[dinoLane] + 'px');
+            
+            if (!isCrouchingWithS &&
+              dinoRect.right - 15 > obstacleRect.left &&
+              dinoRect.left + 15 < obstacleRect.right &&
+              dinoRect.bottom - 7 > obstacleRect.top &&
+              dinoRect.top + 7 < obstacleRect.bottom) {
+              return true;
+            }
+          } else if (obstacle.dataset.type === 'rock') {
+            const isCrouchingWithW = isCrouching && dino.style.bottom !== (laneBottoms[dinoLane] + 'px');
+            
+            if (!isCrouchingWithW &&
+              dinoRect.right - 15 > obstacleRect.left &&
+              dinoRect.left + 15 < obstacleRect.right &&
+              dinoRect.bottom - 7 > obstacleRect.top &&
+              dinoRect.top + 7 < obstacleRect.bottom) {
+              return true;
+            }
+          } else {
+            if (
+              dinoRect.right - 15 > obstacleRect.left &&
+              dinoRect.left + 15 < obstacleRect.right &&
+              dinoRect.bottom - 7 > obstacleRect.top &&
+              dinoRect.top + 7 < obstacleRect.bottom
+            ) {
+              return true;
+            }
           }
         }
       }
@@ -239,7 +327,7 @@
     function updateScore() {
       score++;
       scoreElem.textContent = score;
-      if (score % 100 === 0 && cactusSpeed < 20) {
+      if (score % 100 === 0 && cactusSpeed < 25) {
         cactusSpeed += 0.5;
       }
     }
@@ -258,7 +346,7 @@
     function startGame() {
       dinoLane = 1;
       dino.style.bottom = laneBottoms[dinoLane] + 'px';
-      cactusSpeed = 7;
+      cactusSpeed = 10;
       cactusInterval = 1200;
       score = 0;
       running = true;
@@ -266,8 +354,8 @@
       dinoAnimTimer = 0;
       isCrouching = false;
       dino.src = dinoIdleImg;
-      dino.style.height = '47px';
-      dino.style.width = '44px';
+      dino.style.height = '70px';
+      dino.style.width = '66px';
       scoreElem.textContent = '0';
       gameOverElem.style.display = 'none';
       for (let cactus of cacti) cactus.remove();
@@ -279,10 +367,31 @@
     function endGame() {
       running = false;
       isCrouching = false;
-      dino.style.height = '47px';
-      dino.style.width = '44px';
-      dino.src = dinoGameOverImg;
-      gameOverElem.style.display = 'block';
+      dino.style.height = '70px';
+      dino.style.width = '66px';
+      
+      // Check if dino was elevated (crouched with W)
+      const wasElevated = dino.style.bottom !== (laneBottoms[dinoLane] + 'px');
+      
+      if (wasElevated) {
+        // Move down 50 pixels first, then to normal position, then show game over
+        const currentBottom = parseInt(dino.style.bottom);
+        dino.style.bottom = (currentBottom - 50) + 'px';
+        
+        setTimeout(() => {
+          dino.style.bottom = laneBottoms[dinoLane] + 'px';
+          setTimeout(() => {
+            dino.src = dinoGameOverImg;
+            gameOverElem.style.display = 'block';
+          }, 100);
+        }, 200);
+      } else {
+        // Normal death - just move to lane position and show game over
+        dino.style.bottom = laneBottoms[dinoLane] + 'px';
+        dino.src = dinoGameOverImg;
+        gameOverElem.style.display = 'block';
+      }
+      
       cancelAnimationFrame(gameLoopId);
       cactusSpawnerTimeouts.forEach(timeout => clearTimeout(timeout));
       cactusSpawnerTimeouts = [];
@@ -302,7 +411,7 @@
     }
 
     let lastSpawnTime = 0;
-    const minSpacingBetweenLanes = 100;
+    const minSpacingBetweenLanes = 150;
     let activeLanes = new Set();
     let laneLastSpawnTime = [0, 0, 0];
     let recentSpawns = [];
@@ -310,7 +419,7 @@
     function spawnCactusInLaneRandomly(lane) {
       if (!running) return;
       
-      const interval = Math.random() * 1300 + 500;
+      const interval = Math.random() * 1300 + 750;
       
       const timeout = setTimeout(() => {
         if (running) {
