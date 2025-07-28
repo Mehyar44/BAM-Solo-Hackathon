@@ -10,17 +10,14 @@
       padding: 0;
       overflow: hidden;
       font-family: Arial, sans-serif;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
     }
     #game-container {
       position: relative;
       width: 800px;
-      height: 180px;
+      height: 200px;
+      margin: 40px auto;
       background: #fff;
-      border: 5px solid #000;
+      border: 2px solid #ccc;
       overflow: hidden;
     }
     #dino {
@@ -40,21 +37,28 @@
       z-index: 5;
       transition: bottom 0.1s;
     }
+    #ground {
+      position: absolute;
+      left: 0;
+      bottom: 0;
+      width: 100%;
+      height: 5px;
+      background: #888;
+    }
     .lane-divider {
       position: absolute;
       left: 0;
       width: 100%;
-      height: 5px;
-      background: #000;
+      height: 2px;
+      background: #ccc;
     }
     #score {
-      position: fixed;
-      top: calc(50vh - 130px);
-      right: calc(50vw - 400px);
+      position: absolute;
+      top: 10px;
+      right: 20px;
       font-size: 20px;
-      color: #000;
+      color: #555;
       font-family: monospace;
-      z-index: 1000;
     }
     #game-over {
       display: none;
@@ -62,7 +66,7 @@
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%);
-      z-index: 30;
+      z-index: 20;
       width: 500px;
       max-width: 90%;
       pointer-events: none;
@@ -75,12 +79,14 @@
 <body>
   <div id="game-container">
     <img id="dino" src="images/trex.png" alt="Dino">
-    <div class="lane-divider" style="bottom: 60px;"></div>
-    <div class="lane-divider" style="bottom: 120px;"></div>
+    <div id="ground"></div>
+    <div class="lane-divider" style="bottom: 55px;"></div>
+    <div class="lane-divider" style="bottom: 110px;"></div>
+    <div id="score">0</div>
     <img id="game-over" src="images/game over screen.png" alt="Game Over">
   </div>
-  <div id="score">0</div>
   <script>
+    // Image paths
     const dinoIdleImg = 'images/trex.png';
     const dinoRunImgs = [
       'images/trex run 1.png',
@@ -93,14 +99,17 @@
     const dinoGameOverImg = 'images/trex game over.png';
     const cactusImg = 'images/cactus.png';
 
+    // Lane setup
     const laneCount = 3;
-    const laneBottoms = [5, 65, 125];
-    let dinoLane = 0;
+    const laneBottoms = [0, 55, 110]; // bottom px for each lane (0 = ground, 2 higher lanes)
+    let dinoLane = 0; // 0 = bottom, 1 = middle, 2 = top
 
+    // Game variables
     const dino = document.getElementById('dino');
     const gameContainer = document.getElementById('game-container');
     const scoreElem = document.getElementById('score');
     const gameOverElem = document.getElementById('game-over');
+    const ground = document.getElementById('ground');
     let dinoY = 0;
     let dinoVY = 0;
     let isJumping = false;
@@ -122,13 +131,14 @@
       dino.src = dinoIdleImg;
       dino.style.height = '47px';
       dino.style.width = '44px';
-      dinoLane = 1;
+      dinoLane = 0;
       dino.style.bottom = laneBottoms[dinoLane] + 'px';
       scoreElem.textContent = '0';
       gameOverElem.style.display = 'none';
       isCrouching = false;
     }
 
+    // Handle lane switching and crouching
     document.addEventListener('keydown', (e) => {
       if (!running && e.code === 'Space') {
         startGame();
@@ -140,41 +150,35 @@
       }
       if (!running) return;
 
-      if (e.code === 'KeyA') {
+      if (e.code === 'ArrowUp') {
         if (dinoLane < laneCount - 1) {
           dinoLane++;
           dino.style.bottom = laneBottoms[dinoLane] + 'px';
         }
       }
-      if (e.code === 'KeyD') {
+      if (e.code === 'ArrowDown') {
         if (dinoLane > 0) {
           dinoLane--;
           dino.style.bottom = laneBottoms[dinoLane] + 'px';
         }
       }
-      if (e.code === 'KeyS' && !isCrouching) {
+      if (e.code === 'Space' && !isCrouching) {
         isCrouching = true;
         dino.style.height = '30px';
         dino.style.width = '59px';
-      }
-      if (e.code === 'KeyW' && !isCrouching) {
-        isCrouching = true;
-        dino.style.height = '30px';
-        dino.style.width = '59px';
-        dino.style.bottom = (laneBottoms[dinoLane] + 25) + 'px';
       }
     });
 
     document.addEventListener('keyup', (e) => {
-      if ((e.code === 'KeyS' || e.code === 'KeyW') && isCrouching) {
+      if (e.code === 'Space' && isCrouching) {
         isCrouching = false;
         dino.style.height = '47px';
         dino.style.width = '44px';
-        dino.style.bottom = laneBottoms[dinoLane] + 'px';
       }
     });
 
     function spawnCactusInLane(lane) {
+      // 1, 2, or 3 cacti side by side in specific lane
       const groupSize = Math.floor(Math.random() * 3) + 1;
       const cactusGroup = [];
       let groupOffset = gameContainer.offsetWidth;
@@ -210,6 +214,7 @@
       const dinoRect = dino.getBoundingClientRect();
       for (let cactus of cacti) {
         const cactusRect = cactus.getBoundingClientRect();
+        // Only check collision if in the same lane
         if (parseInt(cactus.dataset.lane) === dinoLane) {
           if (
             dinoRect.right - 10 > cactusRect.left &&
@@ -256,7 +261,7 @@
     }
 
     function startGame() {
-      dinoLane = 1;
+      dinoLane = 0;
       dino.style.bottom = laneBottoms[dinoLane] + 'px';
       cactusSpeed = 7;
       cactusInterval = 1200;
@@ -284,6 +289,7 @@
       dino.src = dinoGameOverImg;
       gameOverElem.style.display = 'block';
       cancelAnimationFrame(gameLoopId);
+      // Clear all cactus spawner timeouts
       cactusSpawnerTimeouts.forEach(timeout => clearTimeout(timeout));
       cactusSpawnerTimeouts = [];
     }
@@ -296,47 +302,29 @@
     }
 
     function startCactusSpawners() {
+      // Start a spawner for each lane
       for (let lane = 0; lane < laneCount; lane++) {
         spawnCactusInLaneRandomly(lane);
       }
     }
 
-    let lastSpawnTime = 0;
-    const minSpacingBetweenLanes = 100;
-    let activeLanes = new Set();
-    let laneLastSpawnTime = [0, 0, 0];
-    let recentSpawns = [];
-
     function spawnCactusInLaneRandomly(lane) {
       if (!running) return;
       
-      const interval = Math.random() * 1300 + 500;
+      // Random interval between 500ms and 3000ms
+      const interval = Math.random() * 2500 + 500;
       
       const timeout = setTimeout(() => {
         if (running) {
-          const now = Date.now();
-          
-          recentSpawns = recentSpawns.filter(spawnTime => now - spawnTime < 400);
-          
-          const forceSpawn = (now - laneLastSpawnTime[lane]) > 1500;
-          
-          const wouldCauseTripleSpawn = recentSpawns.length >= 2;
-          
-          if ((!wouldCauseTripleSpawn && (now - lastSpawnTime >= minSpacingBetweenLanes)) || 
-              (forceSpawn && !wouldCauseTripleSpawn)) {
-            spawnCactusInLane(lane);
-            lastSpawnTime = now;
-            laneLastSpawnTime[lane] = now;
-            recentSpawns.push(now);
-          }
-          
-          spawnCactusInLaneRandomly(lane);
+          spawnCactusInLane(lane);
+          spawnCactusInLaneRandomly(lane); // Schedule next spawn
         }
       }, interval);
       
       cactusSpawnerTimeouts.push(timeout);
     }
 
+    // Initial setup
     window.onload = () => {
       groundY = 0;
       showIdle();
