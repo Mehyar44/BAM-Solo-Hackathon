@@ -327,7 +327,7 @@
     function updateScore() {
       score++;
       scoreElem.textContent = score;
-      if (score % 100 === 0 && cactusSpeed < 25) {
+      if (score % 100 === 0 && cactusSpeed < 20) { // Changed from 25 to 20 (2x the starting speed of 10)
         cactusSpeed += 0.5;
       }
     }
@@ -419,7 +419,10 @@
     function spawnCactusInLaneRandomly(lane) {
       if (!running) return;
       
-      const interval = Math.random() * 1300 + 750;
+      // Calculate spawn frequency based on score - starts at 750-2050ms, decreases to 500-1300ms
+      const baseInterval = Math.max(500, 750 - Math.floor(score / 200) * 50);
+      const maxInterval = Math.max(1300, 2050 - Math.floor(score / 100) * 75);
+      const interval = Math.random() * (maxInterval - baseInterval) + baseInterval;
       
       const timeout = setTimeout(() => {
         if (running) {
@@ -427,7 +430,9 @@
           
           recentSpawns = recentSpawns.filter(spawnTime => now - spawnTime < 400);
           
-          const forceSpawn = (now - laneLastSpawnTime[lane]) > 1500;
+          // Reduce force spawn time as game progresses
+          const forceSpawnTime = Math.max(1000, 1500 - Math.floor(score / 300) * 100);
+          const forceSpawn = (now - laneLastSpawnTime[lane]) > forceSpawnTime;
           
           const wouldCauseTripleSpawn = recentSpawns.length >= 2;
           
